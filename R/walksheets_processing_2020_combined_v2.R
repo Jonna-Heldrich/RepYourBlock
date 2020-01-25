@@ -169,6 +169,9 @@ streets <- cleaned_dems %>%
 bad_streets <- streets %>% 
   filter(count < 10) 
 
+########################################
+### END fixing the street name data ###
+########################################
 
 #### create ad_ed list from final addresses to match with the election district in the
 #### election district shapefile
@@ -180,10 +183,6 @@ aded <- cleaned_dems %>%
   mutate(ad_ed = as.numeric(ad_ed))
 
 write_csv(aded, "~/Desktop/ryb/RepYourBlock/data/ad_ed_list.csv")
-
-########################################
-### END fixing the street name data ###
-########################################
 
 cleaned_dems %<>% 
   mutate(address = paste(addnumber, addpredirect, clean_addstreet),

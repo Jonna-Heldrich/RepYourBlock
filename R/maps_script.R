@@ -28,20 +28,26 @@ bk_ed_shp <- ed_shp %>%
   right_join(ad_ed_list, by = c("elect_dist" = "ad_ed"))
 
 
-
 ad56_27 <- bk_ed_shp %>% 
   mutate(elect_dist = as.character(elect_dist)) %>% 
   filter(elect_dist == "56027" | elect_dist == "51082" |
            elect_dist == "45003")
 
-#### tester with ad56_26
+map_leaflet <- leaflet() %>%
+  addTiles() %>%
+  addControl(title, position = "topleft", className="map-title")
+
+#### tester with ad56_27
 temp_2_map <- tm_basemap("CartoDB.Voyager") +
   tm_shape(ad56_27) +
-  tm_borders(lwd=1.5, col = "#008ca3", alpha = .5) +
-  tm_layout(frame = FALSE) ## remove black border frame
+  tm_borders(lwd=3, col = "red", alpha = 1) +
+  tm_layout(main.title = "AD 56, ED 27",
+    frame = FALSE) ## remove black border frame
 
-lf <- tmap_leaflet(temp_2_map)
-mapshot(lf, file = "test.png")
+lf <- tmap_leaflet(temp_2_map) %>% 
+  addControl("test", position = "topright")
+
+mapshot(lf, file = "test6.png")
 
 #### creating the data frame to loop through
 # states <- as.data.frame(dismissed_points) %>%
