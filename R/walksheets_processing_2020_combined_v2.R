@@ -138,6 +138,29 @@ cleaned_dems <- dems %>%
 #####################################
 ### explore the street name data ###
 #####################################
+# streets <- cleaned_dems %>% 
+#   group_by(clean_addstreet) %>% 
+#   summarise(count = n(),
+#             aded = first(AD))
+# 
+# bad_streets <- streets %>% 
+#   filter(count < 10) 
+
+# write.csv(bad_streets, "processed_data/streets_to_correct.csv")
+
+#### import corrected bad streets and add to cleaned dems
+
+corrected_df <- read_csv("~/Desktop/ryb/RepYourBlock/data/corrected_streets_20200124.csv") %>% 
+  select(og_name, corrected) %>% 
+  rename(clean_addstreet = og_name)
+
+cleaned_dems <- cleaned_dems %>% 
+  left_join(corrected_df, by = "clean_addstreet") %>% 
+  mutate(clean_addstreet = case_when(is.na(corrected) ~ clean_addstreet,
+                                     !is.na(corrected) ~ corrected)) %>% 
+  select(-corrected)
+
+### check new list
 streets <- cleaned_dems %>% 
   group_by(clean_addstreet) %>% 
   summarise(count = n(),
@@ -146,15 +169,15 @@ streets <- cleaned_dems %>%
 bad_streets <- streets %>% 
   filter(count < 10) 
 
-# write.csv(bad_streets, "processed_data/streets_to_correct.csv")
 
-#### The csv above will be corrected to replace the final misspelled street names 
-#### and then resume cleaning the addresses below
+#### create ad_ed list from final addresses
+aded <- cleaned_dems %>% 
+  mutate(ad_ed = paste0(AD, ED)) %>% 
+  select(ad_ed) %>% 
+  distinct() %>% 
+  mutate(ad_ed = as.numeric(ad_ed))
 
-##### Next steps before we can contniue to create files
-##### import corrected street names
-##### join it to cleaned_dems to correct the remaining street names
-##### explore street name data again to see if there are more streets to correct
+write_csv(aded, "~/Desktop/ryb/RepYourBlock/data/ad_ed_list.csv")
 
 ########################################
 ### END fixing the street name data ###
