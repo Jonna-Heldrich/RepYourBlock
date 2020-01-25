@@ -12,7 +12,8 @@ require(dplyr)
 require(openxlsx)
 library(stringr)
 
-path <- paste0('~/Desktop/NKD_walksheets/')
+path <- paste0('~/Desktop/ryb/raw_data/')
+# path <- paste0('~/Desktop/NKD_walksheets/')
 nyvoter <- paste0(path,'Kings_20191114.txt')
 nyvoter <- read.table(nyvoter, 
                      sep=",",
@@ -34,10 +35,10 @@ dems <- nyvoter2 %>%
          ED, AD, LegDist, ward, CD, SD, status,
          votehistory) %>%
   filter(status=="ACTIVE") %>%
-  filter(party=="DEM") #%>% 
+  filter(party=="DEM") %>% 
   #mutate(AD = as.numeric(str_pad(AD, width = 2, pad = "0")),
-         ED = as.numeric(str_pad(ED, width = 3, pad = "0")),
-         ad_ed = paste(AD, ED, sep = "-"))
+         # ED = as.numeric(str_pad(ED, width = 3, pad = "0")),
+  mutate(ad_ed = paste(AD, ED, sep = "-"))
 
 ###########################################################
 ############ Start to clean street names ##################
