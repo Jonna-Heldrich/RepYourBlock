@@ -170,9 +170,11 @@ bad_streets <- streets %>%
   filter(count < 10) 
 
 
-#### create ad_ed list from final addresses
+#### create ad_ed list from final addresses to match with the election district in the
+#### election district shapefile
 aded <- cleaned_dems %>% 
-  mutate(ad_ed = paste0(AD, ED)) %>% 
+  mutate(ED = str_pad(ED, width = 3, pad = "0"),
+         ad_ed = paste0(AD, ED)) %>% 
   select(ad_ed) %>% 
   distinct() %>% 
   mutate(ad_ed = as.numeric(ad_ed))
