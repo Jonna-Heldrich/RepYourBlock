@@ -298,7 +298,7 @@ for (i in ads) {
     setColWidths(walklist, sheet = 1, cols = 6, widths = 7)
     setColWidths(walklist, sheet = 1, cols = 7, widths = 5)
     setColWidths(walklist, sheet = 1, cols = 8, widths = 16)
-    saveWorkbook(walklist, paste0(path,"ed_tables/","ad_", i, "_ed_", j,"/","print_",filename),
+    saveWorkbook(walklist, paste0(path,"ed_tables/","ad_", i, "_ed_", j,"/",adedname,"_printout.xlsx"),
                  overwrite = TRUE)
   }
 }

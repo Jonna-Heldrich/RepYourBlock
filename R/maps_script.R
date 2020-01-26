@@ -1,7 +1,7 @@
 ### This script works to loop through a shapefile and create a map of each polygon
 
-setwd("/Users/Hodges/Desktop/ryb")
-
+path <- "~/Desktop/RepYourBlock/"
+setwd(path)
 
 #### probably don't need all these packages, check later
 require(sf)
@@ -11,15 +11,13 @@ require(tmap)
 require(tmaptools)
 require(leaflet)
 require(spData)
-require(leaflet)
 require(OpenStreetMap)
-require(mapview)
 
 ### import list of all eds in brooklyn
-ad_ed_list <- read.csv("~/Desktop/ryb/RepYourBlock/data/ad_ed_list.csv")
+ad_ed_list <- read.csv(paste0(path,"data/ad_ed_list.csv"))
 
 ### importing the state and point shapefiles
-ed_shp <- st_read("raw_data/Election Districts/eds_nyc_20191215.shp") 
+ed_shp <- st_read(paste0(path,"data/Election Districts/eds_nyc_20191215.shp"))
 
 bk_ed_shp <- ed_shp %>% 
   right_join(ad_ed_list, by = c("elect_dist" = "ad_ed"))
@@ -56,7 +54,7 @@ aded_list <- ad_ed_list %>%
 ad_ed <- as.list(pull(aded_list, ad_ed)) ### turns ad ed list into list to loop thorugh
 
 #### define 
-# setwd("/Users/Hodges/Desktop/ryb")
+dir.create(paste0(path,"data/ed_tables/maps/"))
 
 for (ed in ad_ed){
   shape <- bk_ed_shp %>% 
@@ -71,9 +69,11 @@ for (ed in ad_ed){
 
   lf <- tmap_leaflet(temp_2_map) %>%
     addControl(ed_title, position = "topright") ### adds title
-
+  i <- as.numeric(substr(ed,1,nchar(ed)-3))
+  j <- as.numeric(substr(ed,nchar(ed)-2, nchar(ed)))
   ### writes out an image of the leaflet map above
-  filename_aded <- paste0("/Users/Hodges/Desktop/ryb/maps/", ed, "_map.png")
+  filename_aded <- paste0(path,"data/ed_tables/", "ad_", i, "_ed_", j,"/","ad_", i, "_ed_", j,"_map.png")
+  #filename_aded <- paste0(path,"ed_tables/","ad_", i, "_ed_", j,"/","print_",filename)
   mapshot(lf, file = filename_aded)
 }
 
