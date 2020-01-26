@@ -250,7 +250,6 @@ for (i in ads) {
     ed_table <- edad_table %>%
       filter(ED==j)
     adedname = paste0("ad_", i, "_ed_", j)
-    filename = paste0(adedname,".xlsx")
     dir.create(paste0(path,"ed_tables/",adedname))
     if (is.na(getTables(walklist, sheet = 1)[1]) == F) {
        removeTable(walklist, sheet = 1, table = getTables(walklist, sheet = 1)[1])
@@ -269,7 +268,7 @@ for (i in ads) {
     setColWidths(walklist, sheet = 1, cols = 9, widths = 6)
     setColWidths(walklist, sheet = 1, cols = 10, widths = 6)
     setColWidths(walklist, sheet = 1, cols = 11, widths = 30)
-    saveWorkbook(walklist, paste0(path,"ed_tables/","ad_", i, "_ed_", j,"/",filename),
+    saveWorkbook(walklist, paste0(path,"ed_tables/","ad_", i, "_ed_", j,"/",adedname,"_sheets.xlsx"),
                  overwrite = TRUE)
   }
 }
