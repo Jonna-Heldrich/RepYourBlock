@@ -285,7 +285,7 @@ for (i in ads) {
     filename = paste0(adedname,".xlsx")
     if (is.na(getTables(walklist, sheet = 1)[1]) == F) {
       removeTable(walklist, sheet = 1, table = getTables(walklist, sheet = 1)[1])
-    } else {next}
+    }
     deleteData(walklist, sheet = 1, cols = 1:8, rows = 1:3000, gridExpand = TRUE)
     writeDataTable(walklist, sheet = 1, tableStyle = "none",
                    x = ed_table[,c("lastname","firstname","address","apt","age",
