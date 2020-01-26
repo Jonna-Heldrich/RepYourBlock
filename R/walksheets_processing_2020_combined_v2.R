@@ -1,10 +1,7 @@
-# DONE 1. place addresses in order by street number and managing difficulties like alphanumeric addresses (eg, 344A Classen Ave)
-# DONE 2. place apartments in order within buildings and managing difference like ordering non-standardized apartment numbers (eg, Apt 1B, 2C, #10K)
-# DONE 3. splitting street addresses into even and odd groups, corresponding to different sides of the street
-# DONE 4. transforming an MMDDYYYY birthdate field into an “age” field
-# DONE BUT SLOW 5. producing a “voter score” identifying more likely petition signers based on the “voter history” field
-# AVALAILABLE 6. "building" and "apt" fields for app
-# DONE 7. give each voter an ID--is this distinct for each ED?
+# Brooklyn Walksheets 2020
+# Purpose: Process voter file to produce walksheets and maps for each ED within each AD
+# in Brooklyn.
+# Authors: Sara Hodges & Jonna Heldrich
 
 # cleaning the data: find most frequent street names
 # look at "openxls" for create checkboxes
@@ -12,7 +9,7 @@ require(dplyr)
 require(openxlsx)
 library(stringr)
 
-path <- paste0('~/Desktop/NKD_walksheets/')
+path <- paste0('~/Desktop/data/')
 nyvoter <- paste0(path,'Kings_20191114.txt')
 nyvoter <- read.table(nyvoter, 
                      sep=",",
@@ -34,10 +31,7 @@ dems <- nyvoter2 %>%
          ED, AD, LegDist, ward, CD, SD, status,
          votehistory) %>%
   filter(status=="ACTIVE") %>%
-  filter(party=="DEM") #%>% 
-  #mutate(AD = as.numeric(str_pad(AD, width = 2, pad = "0")),
-         ED = as.numeric(str_pad(ED, width = 3, pad = "0")),
-         ad_ed = paste(AD, ED, sep = "-"))
+  filter(party=="DEM")
 
 ###########################################################
 ############ Start to clean street names ##################
@@ -180,31 +174,18 @@ cleaned_dems %<>%
          knocked, signed, notes)  %>%
   rename(apt = addapt)
 
-# getscore = function(i) {
-#   sum(c(if_else(grepl(pattern = 'Pri|PR',i) & grepl(pattern = '2018',i),9,0),
-#         if_else(grepl(pattern = 'Pri|PR',i) & grepl(pattern = '2017',i),6,0),
-#         if_else(grepl(pattern = 'Pri|PR|PP',i) & grepl(pattern = '2016',i),2,0)))#,
-# }
-# 
-# for(i in 1:nrow(dems)) {
-#   votehist <- vector()
-#   votehist <- unlist(strsplit(as.character(dems$votehistory[i]),split = ";"))
-#   votehistscore <- as.double(unique(sapply(votehist, getscore)))
-#   dems$voterscore[i] <- if_else(all(nchar(votehist) == 0), 
-#                                 0, sum(unlist(votehistscore)))
-# }
 
-### it's a silly wy to do it, but it is way faster than the ifelse (~ 1min)
-### this just looks for year, but we could figure out how to include 
-### your primary indicator too
+### score voters based on voting frequency
 cleaned_dems2 <- cleaned_dems %>% 
-  mutate(for18 = gsub("2018", "yes", votehistory),
+  mutate(for19 = gsub("2019", "yes", votehistory),
+         for18 = gsub("2018", "yes", votehistory),
          for17 = gsub("2017", "yes", votehistory),
          for16 = gsub("2016", "yes", votehistory),
-         votes18 = str_count(for18, "yes"),
-         votes17 = str_count(for17, "yes"),
-         votes16 = str_count(for16, "yes"),
-         voterscore = votes18 + votes17 + votes16)
+         votes19 = str_count(for19, "yes")*2,
+         votes18 = str_count(for18, "yes")*2,
+         votes17 = str_count(for17, "yes")*1,
+         votes16 = str_count(for16, "yes")*1,
+         voterscore = votes19 + votes18 + votes17 + votes16)
 
 # sort by: street_name, streetside, house_num, aptnum, apt
 ### create the list of ads and eds
@@ -219,10 +200,13 @@ for (i in ads) {
   for (j in eds) {
     ed_table <- ad_table %>%
       filter(ED==j)
-    ed_table[order(ed_table$voterscore,decreasing = TRUE),'prime'][1:50] <- '*'
+    ed_table$prime <- NA
+    ed_table[order(ed_table$voterscore,decreasing = TRUE),
+             'prime'][1:round(0.1*nrow(ed_table))] <- '*'
     ed_table[which(ed_table$prime != "*"),'prime'] <- ""
-    edlistj = ed_table[order(ed_table$clean_addstreet, ed_table$streetside, ed_table$buildingnum,
-                             ed_table$addnumber, ed_table$aptnum, ed_table$apt),]
+    edlistj = ed_table[order(ed_table$clean_addstreet, ed_table$streetside, 
+                             ed_table$buildingnum,ed_table$addnumber, 
+                            ed_table$aptnum, ed_table$apt),]
     edlist[[j]] = edlistj
   }
   edadlist[[i]] <- do.call(dplyr::bind_rows, edlist)
@@ -231,82 +215,68 @@ for (i in ads) {
 ### create workbook, if not already created
 walklist <- createWorkbook()
 addWorksheet(walklist, "Sheet 1")
-dir.create(paste0(path,"ed_tables"))
-dir.create(paste0(path,"ed_tables/googlesheets"))
-dir.create(paste0(path,"ed_tables/print_lists"))
 
+# make folders and google sheet version of walksheet for each AD/ED
+dir.create(paste0(path,"ed_tables/"))
 for (i in ads) {
   edad_table <- edadlist[[i]]
   eds = as.list(unique(edad_table$ED))
   for (j in eds) {
+    print(j)
     ed_table <- edad_table %>%
       filter(ED==j)
-    filename = paste0("ad_", i, "_ed_", j, ".xlsx")
-    writeDataTable(walklist, sheet = 1, x = ed_table[,c("lastname","firstname","address","apt","age",
-                                                   "gender","voterscore","knocked","signed","notes")],
+    adedname = paste0("ad_", i, "_ed_", j)
+    filename = paste0(adedname,".xlsx")
+    dir.create(paste0(path,"ed_tables/",adedname))
+    if (is.na(getTables(walklist, sheet = 1)[1]) == F) {
+       removeTable(walklist, sheet = 1, table = getTables(walklist, sheet = 1)[1])
+    } else {next}
+    deleteData(walklist, sheet = 1, cols = 1:11, rows = 1:3000, gridExpand = TRUE)
+    writeDataTable(walklist, sheet = 1, tableStyle = "none",
+                   x = ed_table[,c("lastname","firstname","address","apt","age",
+                                   "gender","prime","knocked","signed","notes")],
               rowNames = T)
     setColWidths(walklist, sheet = 1, cols = 1, widths = 4)
     setColWidths(walklist, sheet = 1, cols = 2:3, widths = 20)
     setColWidths(walklist, sheet = 1, cols = 4, widths = 30)
     setColWidths(walklist, sheet = 1, cols = 5:6, widths = 5)
     setColWidths(walklist, sheet = 1, cols = 7, widths = 7)
-    setColWidths(walklist, sheet = 1, cols = 8, widths = 7)
+    setColWidths(walklist, sheet = 1, cols = 8, widths = 5)
     setColWidths(walklist, sheet = 1, cols = 9, widths = 6)
     setColWidths(walklist, sheet = 1, cols = 10, widths = 6)
     setColWidths(walklist, sheet = 1, cols = 11, widths = 30)
-    saveWorkbook(walklist, paste0(path,'ed_tables/googlesheets/',filename),overwrite = TRUE)
+    saveWorkbook(walklist, paste0(path,"ed_tables/","ad_", i, "_ed_", j,"/",filename),
+                 overwrite = TRUE)
   }
 }
 
-
+# produce printable walksheets in the same folder as the google sheets walksheets
 for (i in ads) {
   edad_table <- edadlist[[i]]
   eds = as.list(unique(edad_table$ED))
   for (j in eds) {
+    print(j)
     ed_table <- edad_table %>%
       filter(ED==j)
-    filename = paste0("ad_", i, "_ed_", j)
-    writeData(walklist, sheet = 1, x = ed_table[,c("lastname","firstname","address","apt","age",
-                                                   "gender","voterscore","knocked","signed","notes")],rowNames = T)
-    setColWidths(walklist, sheet = 1, cols = 1, widths = 4)
-    setColWidths(walklist, sheet = 1, cols = 2:3, widths = 20)
-    setColWidths(walklist, sheet = 1, cols = 4, widths = 30)
-    setColWidths(walklist, sheet = 1, cols = 5:6, widths = 6)
-    setColWidths(walklist, sheet = 1, cols = 7, widths = 8)
-    setColWidths(walklist, sheet = 1, cols = 8, widths = 7)
-    setColWidths(walklist, sheet = 1, cols = 9, widths = 5)
-    setColWidths(walklist, sheet = 1, cols = 10, widths = 30)
-    saveWorkbook(walklist, paste0(path,'ed_tables/googlesheets/',filename,'.xlsx'), overwrite = TRUE)
-    writeData(walklist, sheet = 1, x = ed_table[,c(1,2,3,4,5,6,10,19)],rowNames = T)
-    setColWidths(walklist, sheet = 1, cols = 1, widths = 4)
-    setColWidths(walklist, sheet = 1, cols = 2:3, widths = 20)
-    setColWidths(walklist, sheet = 1, cols = 4, widths = 30)
-    setColWidths(walklist, sheet = 1, cols = 5:6, widths = 6)
-    setColWidths(walklist, sheet = 1, cols = 7, widths = 8)
-    setColWidths(walklist, sheet = 1, cols = 8, widths = 7)
-    setColWidths(walklist, sheet = 1, cols = 9, widths = 5)
-    setColWidths(walklist, sheet = 1, cols = 10, widths = 30)
-    saveWorkbook(walklist,paste0(path,'ed_tables/pdf_lists/print_lists/',filename,'.xlsx'))
+    adedname = paste0("ad_", i, "_ed_", j)
+    filename = paste0(adedname,".xlsx")
+    if (is.na(getTables(walklist, sheet = 1)[1]) == F) {
+      removeTable(walklist, sheet = 1, table = getTables(walklist, sheet = 1)[1])
+    } else {next}
+    deleteData(walklist, sheet = 1, cols = 1:8, rows = 1:3000, gridExpand = TRUE)
+    writeDataTable(walklist, sheet = 1, tableStyle = "none",
+                   x = ed_table[,c("lastname","firstname","address","apt","age",
+                                   "gender","prime","notes")],
+                   rowNames = F)
+    setColWidths(walklist, sheet = 1, cols = 1:2, widths = 20)
+    setColWidths(walklist, sheet = 1, cols = 3, widths = 30)
+    setColWidths(walklist, sheet = 1, cols = 4:5, widths = 5)
+    setColWidths(walklist, sheet = 1, cols = 6, widths = 7)
+    setColWidths(walklist, sheet = 1, cols = 7, widths = 5)
+    setColWidths(walklist, sheet = 1, cols = 8, widths = 16)
+    saveWorkbook(walklist, paste0(path,"ed_tables/","ad_", i, "_ed_", j,"/","print_",filename),
+                 overwrite = TRUE)
   }
 }
 
 
-for (i in ads) {
-  edad_table <- edadlist[[i]]
-  eds = as.list(unique(edad_table$ED))
-  for (j in eds) {
-    ed_table <- edad_table %>%
-      filter(ED==j)
-    filename = paste0("ad_", i, "_ed_", j)
-    writeData(walklist, sheet = 1, x = ed_table[,c(1,2,3,4,5,6,10,19)],rowNames = T)
-    setColWidths(walklist, sheet = 1, cols = 1, widths = 4)
-    setColWidths(walklist, sheet = 1, cols = 2:3, widths = 20)
-    setColWidths(walklist, sheet = 1, cols = 4, widths = 30)
-    setColWidths(walklist, sheet = 1, cols = 5:6, widths = 6)
-    setColWidths(walklist, sheet = 1, cols = 7, widths = 8)
-    setColWidths(walklist, sheet = 1, cols = 8, widths = 7)
-    setColWidths(walklist, sheet = 1, cols = 9, widths = 5)
-    setColWidths(walklist, sheet = 1, cols = 10, widths = 30)
-    saveWorkbook(walklist, paste0(path,'ed_tables/googlesheets/',filename,'.xlsx'), overwrite = TRUE)
-  }
-}
