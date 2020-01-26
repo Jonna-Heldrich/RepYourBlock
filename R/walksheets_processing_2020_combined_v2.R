@@ -9,9 +9,9 @@ require(dplyr)
 require(openxlsx)
 library(stringr)
 
-path <- paste0('~/Desktop/data/')
+path <- '~/Desktop/ryb/raw_data/'
 nyvoter <- paste0(path,'Kings_20191114.txt')
-nyvoter <- read.table(nyvoter, 
+nyvoter <- read.table(nyvoter,
                      sep=",",
                      fill=TRUE,
                      row.names = NULL)
@@ -26,7 +26,7 @@ nyvoter2 <- nyvoter2[grep("klyn|kltyn|kkyn|klym|olyn|kyln|kllyn|kl;yn|kln|kly|kl
                           nyvoter2$addcity,ignore.case=TRUE),]
 
 dems <- nyvoter2 %>%
-  select(ID, lastname, firstname, addnumber, addfract, addpredirect, addstreet, 
+  select(ID, lastname, firstname, addnumber, addfract, addpredirect, addstreet,
          addpostdirect, addapt, addcity, DOB, gender, party,
          ED, AD, LegDist, ward, CD, SD, status,
          votehistory) %>%
@@ -37,7 +37,7 @@ dems <- nyvoter2 %>%
 ############ Start to clean street names ##################
 ###########################################################
 
-cleaned_dems <- dems %>% 
+cleaned_dems <- dems %>%
   mutate(clean_addstreet = trimws(gsub("\\s+", " ", addstreet)),
          clean_addstreet = gsub("`", "", clean_addstreet),
          clean_addstreet = gsub("HIMROAD", "HIMROD", clean_addstreet),
@@ -53,13 +53,13 @@ cleaned_dems <- dems %>%
          clean_addstreet = gsub("STREETT", "STREET", clean_addstreet),
          clean_addstreet = gsub("STRETT", "STREET", clean_addstreet),
          clean_addstreet = gsub("SRETT", "STREET", clean_addstreet),
-         clean_addstreet = gsub("SSTRETT", "STREET", clean_addstreet), 
+         clean_addstreet = gsub("SSTRETT", "STREET", clean_addstreet),
          clean_addstreet = gsub("STET", "STREET", clean_addstreet),
          clean_addstreet = gsub("STERET", "STREET", clean_addstreet),
          clean_addstreet = gsub("STRRETT", "STREET", clean_addstreet),
          clean_addstreet = gsub("STRREETT", "STREET", clean_addstreet),
          clean_addstreet = gsub("STTEET", "STREET", clean_addstreet),
-         clean_addstreet = gsub("STERT", "STREET", clean_addstreet), 
+         clean_addstreet = gsub("STERT", "STREET", clean_addstreet),
          clean_addstreet = gsub("STEE", "STREET", clean_addstreet),
          clean_addstreet = gsub("STERET", "STREET", clean_addstreet),
          clean_addstreet = gsub("ATREET", "STREET", clean_addstreet),
@@ -116,9 +116,9 @@ cleaned_dems <- dems %>%
          clean_addstreet = gsub("ADELPKI", "ADELPHI", clean_addstreet),
          clean_addstreet = gsub("WHYTHE", "ADELPHI", clean_addstreet),
          clean_addstreet = gsub("WEST", "WEST ", clean_addstreet),
-         clean_addstreet = gsub("EAST", "EAST ", clean_addstreet), 
+         clean_addstreet = gsub("EAST", "EAST ", clean_addstreet),
          clean_addstreet = gsub("WEST ERN", "WESTERN", clean_addstreet),
-         clean_addstreet = gsub("EAST ERN", "EASTERN", clean_addstreet), 
+         clean_addstreet = gsub("EAST ERN", "EASTERN", clean_addstreet),
          clean_addstreet = gsub("STWEST", "WEST", clean_addstreet),
          clean_addstreet = gsub("AVENUEE", "AVENUE", clean_addstreet),
          clean_addstreet = gsub("AVNUE", "AVENUE", clean_addstreet),
@@ -131,29 +131,53 @@ cleaned_dems <- dems %>%
 #####################################
 ### explore the street name data ###
 #####################################
-streets <- cleaned_dems %>% 
-  group_by(clean_addstreet) %>% 
-  summarise(count = n(),
-            aded = first(AD))
-
-bad_streets <- streets %>% 
-  filter(count < 10) 
+# streets <- cleaned_dems %>%
+#   group_by(clean_addstreet) %>%
+#   summarise(count = n(),
+#             aded = first(AD))
+#
+# bad_streets <- streets %>%
+#   filter(count < 10)
 
 # write.csv(bad_streets, "processed_data/streets_to_correct.csv")
 
-#### The csv above will be corrected to replace the final misspelled street names 
-#### and then resume cleaning the addresses below
+#### import corrected bad streets and add to cleaned dems
 
-##### Next steps before we can contniue to create files
-##### import corrected street names
-##### join it to cleaned_dems to correct the remaining street names
-##### explore street name data again to see if there are more streets to correct
+corrected_df <- read_csv("~/Desktop/ryb/RepYourBlock/data/corrected_streets_20200124.csv") %>%
+  select(og_name, corrected) %>%
+  rename(clean_addstreet = og_name)
+
+cleaned_dems <- cleaned_dems %>%
+  left_join(corrected_df, by = "clean_addstreet") %>%
+  mutate(clean_addstreet = case_when(is.na(corrected) ~ clean_addstreet,
+                                     !is.na(corrected) ~ corrected)) %>%
+  select(-corrected)
+
+### check new list
+streets <- cleaned_dems %>%
+  group_by(clean_addstreet) %>%
+  summarise(count = n(),
+            aded = first(AD))
+
+bad_streets <- streets %>%
+  filter(count < 10)
 
 ########################################
 ### END fixing the street name data ###
 ########################################
 
-cleaned_dems %<>% 
+#### create ad_ed list from final addresses to match with the election district in the
+#### election district shapefile
+aded <- cleaned_dems %>%
+  mutate(ED = str_pad(ED, width = 3, pad = "0"),
+         ad_ed = paste0(AD, ED)) %>%
+  select(ad_ed) %>%
+  distinct() %>%
+  mutate(ad_ed = as.numeric(ad_ed))
+
+write_csv(aded, "~/Desktop/ryb/RepYourBlock/data/ad_ed_list.csv")
+
+cleaned_dems %<>%
   mutate(address = paste(addnumber, addpredirect, clean_addstreet),
          addnumber2 = gsub('\\b 1/2','',addnumber),
          buildingnum = as.numeric(gsub("[^0-9]", "", addnumber2)),
@@ -176,7 +200,7 @@ cleaned_dems %<>%
 
 
 ### score voters based on voting frequency
-cleaned_dems2 <- cleaned_dems %>% 
+cleaned_dems2 <- cleaned_dems %>%
   mutate(for19 = gsub("2019", "yes", votehistory),
          for18 = gsub("2018", "yes", votehistory),
          for17 = gsub("2017", "yes", votehistory),
@@ -193,7 +217,7 @@ ads = as.list(unique(cleaned_dems2$AD))
 edadlist = list()
 for (i in ads) {
   ad_table <- cleaned_dems2 %>%
-    filter(AD==i)  
+    filter(AD==i)
   eds = as.list(unique(ad_table$ED))
   print(i)
   edlist = list()
@@ -204,8 +228,8 @@ for (i in ads) {
     ed_table[order(ed_table$voterscore,decreasing = TRUE),
              'prime'][1:round(0.1*nrow(ed_table))] <- '*'
     ed_table[which(ed_table$prime != "*"),'prime'] <- ""
-    edlistj = ed_table[order(ed_table$clean_addstreet, ed_table$streetside, 
-                             ed_table$buildingnum,ed_table$addnumber, 
+    edlistj = ed_table[order(ed_table$clean_addstreet, ed_table$streetside,
+                             ed_table$buildingnum,ed_table$addnumber,
                             ed_table$aptnum, ed_table$apt),]
     edlist[[j]] = edlistj
   }
@@ -278,5 +302,3 @@ for (i in ads) {
                  overwrite = TRUE)
   }
 }
-
-
