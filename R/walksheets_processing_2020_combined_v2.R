@@ -8,6 +8,7 @@
 require(dplyr)
 require(openxlsx)
 library(stringr)
+require(readr)
 
 path <- '~/Desktop/ryb/raw_data/'
 nyvoter <- paste0(path,'Kings_20191114.txt')
@@ -143,7 +144,7 @@ cleaned_dems <- dems %>%
 
 #### import corrected bad streets and add to cleaned dems
 
-corrected_df <- read_csv("~/Desktop/ryb/RepYourBlock/data/corrected_streets_20200124.csv") %>%
+corrected_df <- read_csv(paste0(path,"data/corrected_streets_20200124.csv")) %>%
   select(og_name, corrected) %>%
   rename(clean_addstreet = og_name)
 
@@ -175,13 +176,14 @@ aded <- cleaned_dems %>%
   distinct() %>%
   mutate(ad_ed = as.numeric(ad_ed))
 
-write_csv(aded, "~/Desktop/ryb/RepYourBlock/data/ad_ed_list.csv")
+#write_csv(aded, "~/Desktop/ryb/RepYourBlock/data/ad_ed_list.csv")
 
 cleaned_dems %<>%
   mutate(address = paste(addnumber, addpredirect, clean_addstreet),
          addnumber2 = gsub('\\b 1/2','',addnumber),
          buildingnum = as.numeric(gsub("[^0-9]", "", addnumber2)),
          aptnum = as.numeric(gsub("[^0-9]", "", addapt)),
+         apt = gsub(" ","",addapt),
          last_voted = substr(votehistory, 0, 11),
          voterscore = "",
          knocked = "",
@@ -192,12 +194,10 @@ cleaned_dems %<>%
          age = paste(2019 - as.numeric(substr(DOB, 0, 4))),
          streetside = if_else((as.numeric(as.character(buildingnum)) %% 2 == 0),'even','odd')
   ) %>%
-  select(lastname, firstname, address, addapt, age, gender,
+  select(lastname, firstname, address, apt, age, gender,
          ED, AD, last_voted, voterscore, streetside,
          clean_addstreet, addnumber, buildingnum, aptnum, votehistory,
-         knocked, signed, notes)  %>%
-  rename(apt = addapt)
-
+         knocked, signed, notes)
 
 ### score voters based on voting frequency
 cleaned_dems2 <- cleaned_dems %>%
@@ -241,7 +241,7 @@ walklist <- createWorkbook()
 addWorksheet(walklist, "Sheet 1")
 
 # make folders and google sheet version of walksheet for each AD/ED
-dir.create(paste0(path,"ed_tables/"))
+dir.create(paste0(path,"data/ed_tables/"))
 for (i in ads) {
   edad_table <- edadlist[[i]]
   eds = as.list(unique(edad_table$ED))
@@ -250,10 +250,10 @@ for (i in ads) {
     ed_table <- edad_table %>%
       filter(ED==j)
     adedname = paste0("ad_", i, "_ed_", j)
-    dir.create(paste0(path,"ed_tables/",adedname))
+    dir.create(paste0(path,"data/ed_tables/",adedname))
     if (is.na(getTables(walklist, sheet = 1)[1]) == F) {
        removeTable(walklist, sheet = 1, table = getTables(walklist, sheet = 1)[1])
-    } else {next}
+    }
     deleteData(walklist, sheet = 1, cols = 1:11, rows = 1:3000, gridExpand = TRUE)
     writeDataTable(walklist, sheet = 1, tableStyle = "none",
                    x = ed_table[,c("lastname","firstname","address","apt","age",
@@ -268,7 +268,7 @@ for (i in ads) {
     setColWidths(walklist, sheet = 1, cols = 9, widths = 6)
     setColWidths(walklist, sheet = 1, cols = 10, widths = 6)
     setColWidths(walklist, sheet = 1, cols = 11, widths = 30)
-    saveWorkbook(walklist, paste0(path,"ed_tables/","ad_", i, "_ed_", j,"/",adedname,"_sheets.xlsx"),
+    saveWorkbook(walklist, paste0(path,"data/ed_tables/",adedname,"/",adedname,"_sheets.xlsx"),
                  overwrite = TRUE)
   }
 }
@@ -297,7 +297,7 @@ for (i in ads) {
     setColWidths(walklist, sheet = 1, cols = 6, widths = 7)
     setColWidths(walklist, sheet = 1, cols = 7, widths = 5)
     setColWidths(walklist, sheet = 1, cols = 8, widths = 16)
-    saveWorkbook(walklist, paste0(path,"ed_tables/","ad_", i, "_ed_", j,"/",adedname,"_printout.xlsx"),
+    saveWorkbook(walklist, paste0(path,"data/ed_tables/",adedname,"/",adedname,"_printout.xlsx"),
                  overwrite = TRUE)
   }
 }
