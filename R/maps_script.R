@@ -48,7 +48,7 @@ mapshot(lf, file = "test6.png")
 
 #### ad_ed_list is the dataframe to loop through - use this first  if you want to create new maps for a few districts
 aded_list <- ad_ed_list %>%
-  filter(ad_ed == "46020" | ad_ed == "51082" |
+  filter(ad_ed == "56044" | ad_ed == "51082" |
            ad_ed == "45003")
 
 ad_ed <- as.list(pull(aded_list, ad_ed)) ### turns ad ed list into list to loop thorugh

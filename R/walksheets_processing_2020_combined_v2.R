@@ -10,7 +10,7 @@ require(openxlsx)
 library(stringr)
 require(readr)
 
-path <- '~/Desktop/ryb/raw_data/'
+path <- '~/Desktop/RepYourBlock/'
 nyvoter <- paste0(path,'Kings_20191114.txt')
 nyvoter <- read.table(nyvoter,
                      sep=",",
@@ -187,8 +187,9 @@ cleaned_dems %<>%
          last_voted = substr(votehistory, 0, 11),
          voterscore = "",
          knocked = "",
-         #Moved = "",
-         #Refused.Inaccessible = "",
+         moved = "",
+         inaccessible = "",
+         refused = "",
          signed = "",
          notes = "",
          age = paste(2019 - as.numeric(substr(DOB, 0, 4))),
@@ -197,7 +198,8 @@ cleaned_dems %<>%
   select(lastname, firstname, address, apt, age, gender,
          ED, AD, last_voted, voterscore, streetside,
          clean_addstreet, addnumber, buildingnum, aptnum, votehistory,
-         knocked, signed, notes)
+         knocked, signed, moved, inaccessible, refused, notes)  %>%
+  rename(sex = gender)
 
 ### score voters based on voting frequency
 cleaned_dems2 <- cleaned_dems %>%
@@ -230,7 +232,7 @@ for (i in ads) {
     ed_table[which(ed_table$prime != "*"),'prime'] <- ""
     edlistj = ed_table[order(ed_table$clean_addstreet, ed_table$streetside,
                              ed_table$buildingnum,ed_table$addnumber,
-                            ed_table$aptnum, ed_table$apt),]
+                            ed_table$aptnum, ed_table$apt, decreasing = F),]
     edlist[[j]] = edlistj
   }
   edadlist[[i]] <- do.call(dplyr::bind_rows, edlist)
@@ -255,19 +257,23 @@ for (i in ads) {
        removeTable(walklist, sheet = 1, table = getTables(walklist, sheet = 1)[1])
     }
     deleteData(walklist, sheet = 1, cols = 1:11, rows = 1:3000, gridExpand = TRUE)
-    writeDataTable(walklist, sheet = 1, tableStyle = "none",
+    writeDataTable(walklist, sheet = 1, 
                    x = ed_table[,c("lastname","firstname","address","apt","age",
-                                   "gender","prime","knocked","signed","notes")],
+                                   "sex","prime","knocked","signed","moved", 
+                                   "inaccessible", "refused","notes")],
               rowNames = T)
     setColWidths(walklist, sheet = 1, cols = 1, widths = 4)
     setColWidths(walklist, sheet = 1, cols = 2:3, widths = 20)
     setColWidths(walklist, sheet = 1, cols = 4, widths = 30)
-    setColWidths(walklist, sheet = 1, cols = 5:6, widths = 5)
-    setColWidths(walklist, sheet = 1, cols = 7, widths = 7)
-    setColWidths(walklist, sheet = 1, cols = 8, widths = 5)
-    setColWidths(walklist, sheet = 1, cols = 9, widths = 6)
-    setColWidths(walklist, sheet = 1, cols = 10, widths = 6)
-    setColWidths(walklist, sheet = 1, cols = 11, widths = 30)
+    setColWidths(walklist, sheet = 1, cols = 5, widths = 7)
+    setColWidths(walklist, sheet = 1, cols = 6, widths = 5)
+    setColWidths(walklist, sheet = 1, cols = 7, widths = 5)
+    setColWidths(walklist, sheet = 1, cols = 8, widths = 7)
+    setColWidths(walklist, sheet = 1, cols = 9, widths = 9)
+    setColWidths(walklist, sheet = 1, cols = 10:11, widths = 8)
+    setColWidths(walklist, sheet = 1, cols = 12, widths = 12)
+    setColWidths(walklist, sheet = 1, cols = 13, widths = 8)
+    setColWidths(walklist, sheet = 1, cols = 14, widths = 30)
     saveWorkbook(walklist, paste0(path,"data/ed_tables/",adedname,"/",adedname,"_sheets.xlsx"),
                  overwrite = TRUE)
   }
@@ -289,14 +295,16 @@ for (i in ads) {
     deleteData(walklist, sheet = 1, cols = 1:8, rows = 1:3000, gridExpand = TRUE)
     writeDataTable(walklist, sheet = 1, tableStyle = "none",
                    x = ed_table[,c("lastname","firstname","address","apt","age",
-                                   "gender","prime","notes")],
+                                   "sex","prime","notes")],
                    rowNames = F)
     setColWidths(walklist, sheet = 1, cols = 1:2, widths = 20)
     setColWidths(walklist, sheet = 1, cols = 3, widths = 30)
-    setColWidths(walklist, sheet = 1, cols = 4:5, widths = 5)
-    setColWidths(walklist, sheet = 1, cols = 6, widths = 7)
+    setColWidths(walklist, sheet = 1, cols = 4, widths = 7)
+    setColWidths(walklist, sheet = 1, cols = 5, widths = 4)
+    setColWidths(walklist, sheet = 1, cols = 6, widths = 5)
     setColWidths(walklist, sheet = 1, cols = 7, widths = 5)
     setColWidths(walklist, sheet = 1, cols = 8, widths = 16)
+    pageSetup(walklist, sheet = 1, orientation = "landscape")
     saveWorkbook(walklist, paste0(path,"data/ed_tables/",adedname,"/",adedname,"_printout.xlsx"),
                  overwrite = TRUE)
   }
