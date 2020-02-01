@@ -10,7 +10,8 @@ require(openxlsx)
 library(stringr)
 require(readr)
 
-path <- '~/Desktop/RepYourBlock/'
+path <- '~/Desktop/ryb/raw_data/'  #### path on Sara's computer
+# path <- '~/Desktop/RepYourBlock/'
 nyvoter <- paste0(path,'Kings_20191114.txt')
 nyvoter <- read.table(nyvoter,
                      sep=",",
@@ -144,7 +145,8 @@ cleaned_dems <- dems %>%
 
 #### import corrected bad streets and add to cleaned dems
 
-corrected_df <- read_csv(paste0(path,"data/corrected_streets_20200124.csv")) %>%
+# corrected_df <- read_csv(paste0(path,"data/corrected_streets_20200124.csv")) %>%
+corrected_df <- read_csv("~/Desktop/ryb/processed_data/corrected_streets_20200124.csv") %>%
   select(og_name, corrected) %>%
   rename(clean_addstreet = og_name)
 
@@ -211,7 +213,10 @@ cleaned_dems2 <- cleaned_dems %>%
          votes18 = str_count(for18, "yes")*2,
          votes17 = str_count(for17, "yes")*1,
          votes16 = str_count(for16, "yes")*1,
-         voterscore = votes19 + votes18 + votes17 + votes16)
+         voterscore = votes19 + votes18 + votes17 + votes16,
+         lastname = str_to_title(as.character(lastname)),
+         firstname = str_to_title(as.character(firstname)),
+         address = str_to_title(address))
 
 # sort by: street_name, streetside, house_num, aptnum, apt
 ### create the list of ads and eds
@@ -241,6 +246,8 @@ for (i in ads) {
 ### create workbook, if not already created
 walklist <- createWorkbook()
 addWorksheet(walklist, "Sheet 1")
+
+# path <- '~/Desktop/ryb/final_data/'  #### path on Sara's computer
 
 # make folders and google sheet version of walksheet for each AD/ED
 dir.create(paste0(path,"data/ed_tables/"))
