@@ -72,7 +72,7 @@ for (ed in ad_ed){
   i <- as.numeric(substr(ed,1,nchar(ed)-3))
   j <- as.numeric(substr(ed,nchar(ed)-2, nchar(ed)))
   ### writes out an image of the leaflet map above
-  filename_aded <- paste0(path,"data/ed_tables/", "ad_", i, "_ed_", j,"/","ad_", i, "_ed_", j,"_map.png")
+  filename_aded <- paste0(path,"data/walksheets/AD_",i,"/", "ad_", i, "_ed_", j,"/","ad_", i, "_ed_", j,"_map.png")
   #filename_aded <- paste0(path,"ed_tables/","ad_", i, "_ed_", j,"/","print_",filename)
   mapshot(lf, file = filename_aded)
 }

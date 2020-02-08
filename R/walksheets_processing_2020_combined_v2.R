@@ -31,7 +31,7 @@ dems <- nyvoter2 %>%
   select(ID, lastname, firstname, addnumber, addfract, addpredirect, addstreet,
          addpostdirect, addapt, addcity, DOB, gender, party,
          ED, AD, LegDist, ward, CD, SD, status,
-         votehistory) %>%
+         votehistory,regdate) %>%
   filter(status=="ACTIVE") %>%
   filter(party=="DEM")
 
@@ -113,7 +113,6 @@ cleaned_dems <- dems %>%
          clean_addstreet = gsub("WYKCOFF", "WYCKOFF", clean_addstreet),
          clean_addstreet = gsub("WHYTHE", "WYTHE", clean_addstreet),
          clean_addstreet = gsub("ADELHI", "ADELPHI", clean_addstreet),
-         #clean_addstreet = gsub("ADELPHI", "ADELPHI", clean_addstreet),
          clean_addstreet = gsub("ADELPHIA", "ADELPHI", clean_addstreet),
          clean_addstreet = gsub("ADELPKI", "ADELPHI", clean_addstreet),
          clean_addstreet = gsub("WHYTHE", "ADELPHI", clean_addstreet),
@@ -145,7 +144,7 @@ cleaned_dems <- dems %>%
 
 #### import corrected bad streets and add to cleaned dems
 
-# corrected_df <- read_csv(paste0(path,"data/corrected_streets_20200124.csv")) %>%
+# corrected_df <- read_csv("~/Desktop/RepYourBlock/data/corrected_streets_20200124.csv") %>%
 corrected_df <- read_csv("~/Desktop/ryb/processed_data/corrected_streets_20200124.csv") %>%
   select(og_name, corrected) %>%
   rename(clean_addstreet = og_name)
@@ -183,27 +182,72 @@ aded <- cleaned_dems %>%
 #write_csv(aded, "~/Desktop/ryb/RepYourBlock/data/ad_ed_list.csv")
 
 cleaned_dems %<>%
-  mutate(address = paste(addnumber, addpredirect, clean_addstreet),
+  mutate(name = str_to_title(as.character(paste(firstname, lastname))),
+         address = str_to_title(as.character(paste(addnumber, addpredirect, clean_addstreet))),
          addnumber2 = gsub('\\b 1/2','',addnumber),
          buildingnum = as.numeric(gsub("[^0-9]", "", addnumber2)),
          aptnum = as.numeric(gsub("[^0-9]", "", addapt)),
          apt = gsub(" ","",addapt),
          last_voted = substr(votehistory, 0, 11),
-         voterscore = "",
+         status = "",
          knocked = "",
          moved = "",
          inaccessible = "",
          refused = "",
          signed = "",
+         email = "",
          notes = "",
          age = paste(2019 - as.numeric(substr(DOB, 0, 4))),
          streetside = if_else((as.numeric(as.character(buildingnum)) %% 2 == 0),'even','odd')
   ) %>%
-  select(lastname, firstname, address, apt, age, gender,
-         ED, AD, last_voted, voterscore, streetside,
-         clean_addstreet, addnumber, buildingnum, aptnum, votehistory,
-         knocked, signed, moved, inaccessible, refused, notes)  %>%
+  select(name, address, apt, age, gender,
+         ED, AD, last_voted, status, streetside,
+         clean_addstreet, addnumber, buildingnum, aptnum, votehistory, regdate,
+         knocked, signed, moved, inaccessible, refused, email, notes)  %>%
   rename(sex = gender)
+
+primaries=c("20180424 SP",
+            "4-24-2018 Special Election",
+            "SP 20180424",
+            "SPECIAL ELECTION 2018",
+            "Special Election, 2018",
+            "2018 FEDERAL PRIMARY",
+            "2018 Federal Primary Election",
+            "20180626 PR",
+            "2018CONGRESSIONAL PRIMARY",
+            "FEDERAL OFFICES PRIMARY 2018",
+            "FEDERAL PRIMARY 2018",
+            "FEDERAL PRIMARY ELECTION 2018",
+            "Federal Primary Election-Republican",
+            "Federal Primary, 2018",
+            "PR 20180626",
+            "PRIMARY FEDERAL ELECTION 2018",
+            "2018 AD 17 SPECIAL",
+            "18 PRIMARY ELECTION",
+            "2018 PRIMARY ELECTION",
+            "2018 State & Local Primary Election",
+            "2018 STATE PRIMARY ELECTION)",
+            "20180913 PR",
+            "PR 20180913",
+            "PRIMARY 2018",
+            "PRIMARY ELECTION 2018",
+            "Primary Election, 2018",
+            "20190226 SP",
+            "SP 20190226",
+            "20190514 SP",
+            "SP 2019-05-",
+              "SP 20190514",
+            "20190625 PR",
+            "PR 20190625")
+### voter status: 
+###    reg="registered after Nov 2018", 
+###    non='not voted since 2016',
+###    active='voted since 2016'
+###    prim='voted in primary since 2017'
+cleaned_dems2 <- cleaned_dems %>%
+  mutate(status = ifelse(grepl(paste(primaries,collapse = "|"),votehistory)==TRUE,"prim",
+                  ifelse(grepl('2017|2018|2019',votehistory)==TRUE,'active',
+                  ifelse(regdate>20181100,'reg','inactive'))))
 
 ### score voters based on voting frequency
 cleaned_dems2 <- cleaned_dems %>%
@@ -216,8 +260,7 @@ cleaned_dems2 <- cleaned_dems %>%
          votes17 = str_count(for17, "yes")*1,
          votes16 = str_count(for16, "yes")*1,
          voterscore = votes19 + votes18 + votes17 + votes16,
-         lastname = str_to_title(as.character(lastname)),
-         firstname = str_to_title(as.character(firstname)),
+         name = str_to_title(as.character(name)),
          address = str_to_title(address))
 
 # sort by: street_name, streetside, house_num, aptnum, apt
@@ -252,38 +295,40 @@ addWorksheet(walklist, "Sheet 1")
 # path <- '~/Desktop/ryb/final_data/'  #### path on Sara's computer
 
 # make folders and google sheet version of walksheet for each AD/ED
-dir.create(paste0(path,"data/ed_tables/"))
+dir.create(paste0(path,"data/walksheets/"))
 for (i in ads) {
   edad_table <- edadlist[[i]]
   eds = as.list(unique(edad_table$ED))
+  dir.create(paste0(path,"data/walksheets/AD_",i))
   for (j in eds) {
     print(j)
     ed_table <- edad_table %>%
       filter(ED==j)
     adedname = paste0("ad_", i, "_ed_", j)
-    dir.create(paste0(path,"data/ed_tables/",adedname))
+    dir.create(paste0(path,"data/walksheets/AD_",i,"/",adedname))
     if (is.na(getTables(walklist, sheet = 1)[1]) == F) {
        removeTable(walklist, sheet = 1, table = getTables(walklist, sheet = 1)[1])
     }
     deleteData(walklist, sheet = 1, cols = 1:11, rows = 1:3000, gridExpand = TRUE)
     writeDataTable(walklist, sheet = 1, 
-                   x = ed_table[,c("lastname","firstname","address","apt","age",
+                   x = ed_table[,c("name","address","apt","age",
                                    "sex","prime","knocked","signed","moved", 
-                                   "inaccessible", "refused","notes")],
+                                    "inaccessible", "refused","email","notes")],
               rowNames = T)
     setColWidths(walklist, sheet = 1, cols = 1, widths = 4)
-    setColWidths(walklist, sheet = 1, cols = 2:3, widths = 20)
-    setColWidths(walklist, sheet = 1, cols = 4, widths = 30)
-    setColWidths(walklist, sheet = 1, cols = 5, widths = 7)
+    setColWidths(walklist, sheet = 1, cols = 2, widths = 30)
+    setColWidths(walklist, sheet = 1, cols = 3, widths = 30)
+    setColWidths(walklist, sheet = 1, cols = 4, widths = 7)
+    setColWidths(walklist, sheet = 1, cols = 5, widths = 5)
     setColWidths(walklist, sheet = 1, cols = 6, widths = 5)
-    setColWidths(walklist, sheet = 1, cols = 7, widths = 5)
-    setColWidths(walklist, sheet = 1, cols = 8, widths = 7)
-    setColWidths(walklist, sheet = 1, cols = 9, widths = 9)
-    setColWidths(walklist, sheet = 1, cols = 10:11, widths = 8)
-    setColWidths(walklist, sheet = 1, cols = 12, widths = 12)
-    setColWidths(walklist, sheet = 1, cols = 13, widths = 8)
+    setColWidths(walklist, sheet = 1, cols = 7, widths = 7)
+    setColWidths(walklist, sheet = 1, cols = 8, widths = 9)
+    setColWidths(walklist, sheet = 1, cols = 9:10, widths = 8)
+    setColWidths(walklist, sheet = 1, cols = 11, widths = 12)
+    setColWidths(walklist, sheet = 1, cols = 12, widths = 8)
+    setColWidths(walklist, sheet = 1, cols = 13, widths = 12)
     setColWidths(walklist, sheet = 1, cols = 14, widths = 30)
-    saveWorkbook(walklist, paste0(path,"data/ed_tables/",adedname,"/",adedname,"_sheets.xlsx"),
+    saveWorkbook(walklist, paste0(path,"data/walksheets/AD_",i,"/",adedname,"/",adedname,"_sheets.xlsx"),
                  overwrite = TRUE)
   }
 }
@@ -292,6 +337,7 @@ for (i in ads) {
 for (i in ads) {
   edad_table <- edadlist[[i]]
   eds = as.list(unique(edad_table$ED))
+  dir.create(paste0(path,"data/walksheets/AD_",i))
   for (j in eds) {
     print(j)
     ed_table <- edad_table %>%
@@ -303,18 +349,18 @@ for (i in ads) {
     }
     deleteData(walklist, sheet = 1, cols = 1:8, rows = 1:3000, gridExpand = TRUE)
     writeDataTable(walklist, sheet = 1, tableStyle = "none",
-                   x = ed_table[,c("lastname","firstname","address","apt","age",
+                   x = ed_table[,c("name","address","apt","age",
                                    "sex","prime","notes")],
                    rowNames = F)
-    setColWidths(walklist, sheet = 1, cols = 1:2, widths = 20)
-    setColWidths(walklist, sheet = 1, cols = 3, widths = 30)
-    setColWidths(walklist, sheet = 1, cols = 4, widths = 7)
+    setColWidths(walklist, sheet = 1, cols = 1, widths = 25)
+    setColWidths(walklist, sheet = 1, cols = 2, widths = 30)
+    setColWidths(walklist, sheet = 1, cols = 3, widths = 7)
+    setColWidths(walklist, sheet = 1, cols = 4, widths = 4)
     setColWidths(walklist, sheet = 1, cols = 5, widths = 4)
     setColWidths(walklist, sheet = 1, cols = 6, widths = 5)
-    setColWidths(walklist, sheet = 1, cols = 7, widths = 5)
-    setColWidths(walklist, sheet = 1, cols = 8, widths = 16)
-    pageSetup(walklist, sheet = 1, orientation = "landscape")
-    saveWorkbook(walklist, paste0(path,"data/ed_tables/",adedname,"/",adedname,"_printout.xlsx"),
+    setColWidths(walklist, sheet = 1, cols = 7, widths = 10)
+    pageSetup(walklist, sheet = 1)
+    saveWorkbook(walklist, paste0(path,"data/walksheets/AD_",i,"/",adedname,"/",adedname,"_printout.xlsx"),
                  overwrite = TRUE)
   }
 }
