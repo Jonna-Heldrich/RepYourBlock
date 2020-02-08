@@ -12,7 +12,7 @@ require(readr)
 
 path <- '~/Desktop/ryb/raw_data/'  #### path on Sara's computer
 # path <- '~/Desktop/RepYourBlock/'
-nyvoter <- paste0(path,'Kings_20191114.txt')
+nyvoter <- paste0(path,'Kings_20200127.txt')
 nyvoter <- read.table(nyvoter,
                      sep=",",
                      fill=TRUE,
@@ -164,6 +164,8 @@ streets <- cleaned_dems %>%
 
 bad_streets <- streets %>%
   filter(count < 10)
+
+# write.csv(bad_streets, "~/Desktop/ryb/RepYourBlock/data/streets_to_correct_2020.csv")
 
 ########################################
 ### END fixing the street name data ###
