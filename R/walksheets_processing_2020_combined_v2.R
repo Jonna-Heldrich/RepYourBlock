@@ -249,20 +249,6 @@ cleaned_dems2 <- cleaned_dems %>%
                   ifelse(grepl('2017|2018|2019',votehistory)==TRUE,'active',
                   ifelse(regdate>20181100,'reg','inactive'))))
 
-### score voters based on voting frequency
-cleaned_dems2 <- cleaned_dems %>%
-  mutate(for19 = gsub("2019", "yes", votehistory),
-         for18 = gsub("2018", "yes", votehistory),
-         for17 = gsub("2017", "yes", votehistory),
-         for16 = gsub("2016", "yes", votehistory),
-         votes19 = str_count(for19, "yes")*2,
-         votes18 = str_count(for18, "yes")*2,
-         votes17 = str_count(for17, "yes")*1,
-         votes16 = str_count(for16, "yes")*1,
-         voterscore = votes19 + votes18 + votes17 + votes16,
-         name = str_to_title(as.character(name)),
-         address = str_to_title(address))
-
 # sort by: street_name, streetside, house_num, aptnum, apt
 ### create the list of ads and eds
 ads = as.list(unique(cleaned_dems2$AD))
