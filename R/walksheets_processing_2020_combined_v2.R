@@ -298,7 +298,7 @@ for (i in ads) {
     deleteData(walklist, sheet = 1, cols = 1:11, rows = 1:3000, gridExpand = TRUE)
     writeDataTable(walklist, sheet = 1, 
                    x = ed_table[,c("name","address","apt","age",
-                                   "sex","prime","knocked","signed","moved", 
+                                   "sex","status","knocked","signed","moved", 
                                     "inaccessible", "refused","email","notes")],
               rowNames = T)
     setColWidths(walklist, sheet = 1, cols = 1, widths = 4)
@@ -336,7 +336,7 @@ for (i in ads) {
     deleteData(walklist, sheet = 1, cols = 1:8, rows = 1:3000, gridExpand = TRUE)
     writeDataTable(walklist, sheet = 1, tableStyle = "none",
                    x = ed_table[,c("name","address","apt","age",
-                                   "sex","prime","notes")],
+                                   "sex","status","notes")],
                    rowNames = F)
     setColWidths(walklist, sheet = 1, cols = 1, widths = 25)
     setColWidths(walklist, sheet = 1, cols = 2, widths = 30)
