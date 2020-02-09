@@ -273,10 +273,12 @@ for (i in ads) {
 ### create workbook, if not already created
 walklist <- createWorkbook()
 addWorksheet(walklist, "Sheet 1")
-
+walklistprint <- createWorkbook()
+addWorksheet(walklistprint, "Sheet 1")
 # path <- '~/Desktop/ryb/final_data/'  #### path on Sara's computer
 
-# make folders and google sheet version of walksheet for each AD/ED
+# make folders and walksheet files for each AD/ED
+
 dir.create(paste0(path,"data/walksheets/"))
 for (i in ads) {
   edad_table <- edadlist[[i]]
@@ -289,14 +291,14 @@ for (i in ads) {
     adedname = paste0("ad_", i, "_ed_", j)
     dir.create(paste0(path,"data/walksheets/AD_",i,"/",adedname))
     if (is.na(getTables(walklist, sheet = 1)[1]) == F) {
-       removeTable(walklist, sheet = 1, table = getTables(walklist, sheet = 1)[1])
+      removeTable(walklist, sheet = 1, table = getTables(walklist, sheet = 1)[1])
     }
     deleteData(walklist, sheet = 1, cols = 1:11, rows = 1:3000, gridExpand = TRUE)
     writeDataTable(walklist, sheet = 1, 
                    x = ed_table[,c("name","address","apt","age",
                                    "sex","status","not_home","signed","moved", 
-                                    "inaccessible", "refused","email","notes")],
-              rowNames = T)
+                                   "inaccessible", "refused","email","notes")],
+                   rowNames = T)
     setColWidths(walklist, sheet = 1, cols = 1, widths = 4)
     setColWidths(walklist, sheet = 1, cols = 2, widths = 30)
     setColWidths(walklist, sheet = 1, cols = 3, widths = 30)
@@ -313,37 +315,24 @@ for (i in ads) {
     freezePane(walklist, sheet = 1,firstRow = TRUE)
     saveWorkbook(walklist, paste0(path,"data/walksheets/AD_",i,"/",adedname,"/",adedname,"_sheets.xlsx"),
                  overwrite = TRUE)
-  }
-}
-
-# produce printable walksheets in the same folder as the google sheets walksheets
-for (i in ads) {
-  edad_table <- edadlist[[i]]
-  eds = as.list(unique(edad_table$ED))
-  dir.create(paste0(path,"data/walksheets/AD_",i))
-  for (j in eds) {
-    print(j)
-    ed_table <- edad_table %>%
-      filter(ED==j)
-    adedname = paste0("ad_", i, "_ed_", j)
-    filename = paste0(adedname,".xlsx")
-    if (is.na(getTables(walklist, sheet = 1)[1]) == F) {
-      removeTable(walklist, sheet = 1, table = getTables(walklist, sheet = 1)[1])
+    if (is.na(getTables(walklistprint, sheet = 1)[1]) == F) {
+      removeTable(walklistprint, sheet = 1, table = getTables(walklistprint, sheet = 1)[1])
     }
-    deleteData(walklist, sheet = 1, cols = 1:8, rows = 1:3000, gridExpand = TRUE)
-    writeDataTable(walklist, sheet = 1, tableStyle = "none",
+    deleteData(walklistprint, sheet = 1, cols = 1:8, rows = 1:3000, gridExpand = TRUE)
+    writeDataTable(walklistprint, sheet = 1, tableStyle = "none",
                    x = ed_table[,c("name","address","apt","age",
                                    "sex","status","notes")],
                    rowNames = F)
-    setColWidths(walklist, sheet = 1, cols = 1, widths = 25)
-    setColWidths(walklist, sheet = 1, cols = 2, widths = 30)
-    setColWidths(walklist, sheet = 1, cols = 3, widths = 7)
-    setColWidths(walklist, sheet = 1, cols = 4, widths = 4)
-    setColWidths(walklist, sheet = 1, cols = 5, widths = 4)
-    setColWidths(walklist, sheet = 1, cols = 6, widths = 5)
-    setColWidths(walklist, sheet = 1, cols = 7, widths = 10)
-    pageSetup(walklist, sheet = 1)
-    saveWorkbook(walklist, paste0(path,"data/walksheets/AD_",i,"/",adedname,"/",adedname,"_printout.xlsx"),
+    setColWidths(walklistprint, sheet = 1, cols = 1, widths = 25)
+    setColWidths(walklistprint, sheet = 1, cols = 2, widths = 30)
+    setColWidths(walklistprint, sheet = 1, cols = 3, widths = 7)
+    setColWidths(walklistprint, sheet = 1, cols = 4, widths = 4)
+    setColWidths(walklistprint, sheet = 1, cols = 5, widths = 4)
+    setColWidths(walklistprint, sheet = 1, cols = 6, widths = 5)
+    setColWidths(walklistprint, sheet = 1, cols = 7, widths = 10)
+    saveWorkbook(walklistprint, paste0(path,"data/walksheets/AD_",i,"/",adedname,"/",adedname,"_printout.xlsx"),
                  overwrite = TRUE)
+    
+    
   }
 }
