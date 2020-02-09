@@ -190,7 +190,7 @@ cleaned_dems %<>%
          apt = gsub(" ","",addapt),
          last_voted = substr(votehistory, 0, 11),
          status = "",
-         knocked = "",
+         not_home = "",
          moved = "",
          inaccessible = "",
          refused = "",
@@ -203,7 +203,7 @@ cleaned_dems %<>%
   select(name, address, apt, age, gender,
          ED, AD, last_voted, status, streetside,
          clean_addstreet, addnumber, buildingnum, aptnum, votehistory, regdate,
-         knocked, signed, moved, inaccessible, refused, email, notes)  %>%
+         not_home, signed, moved, inaccessible, refused, email, notes)  %>%
   rename(sex = gender)
 
 primaries=c("20180424 SP",
@@ -240,14 +240,14 @@ primaries=c("20180424 SP",
             "20190625 PR",
             "PR 20190625")
 ### voter status: 
-###    reg="registered after Nov 2018", 
-###    non='not voted since 2016',
+###    NewReg="registered after Nov 2018", 
+###    inactive='not voted since 2016',
 ###    active='voted since 2016'
-###    prim='voted in primary since 2017'
+###    primary='voted in primary since 2017'
 cleaned_dems2 <- cleaned_dems %>%
-  mutate(status = ifelse(grepl(paste(primaries,collapse = "|"),votehistory)==TRUE,"prim",
+  mutate(status = ifelse(grepl(paste(primaries,collapse = "|"),votehistory)==TRUE,"primary",
                   ifelse(grepl('2017|2018|2019',votehistory)==TRUE,'active',
-                  ifelse(regdate>20181100,'reg','inactive'))))
+                  ifelse(regdate>20181100,'NewReg','inactive'))))
 
 # sort by: street_name, streetside, house_num, aptnum, apt
 ### create the list of ads and eds
@@ -294,7 +294,7 @@ for (i in ads) {
     deleteData(walklist, sheet = 1, cols = 1:11, rows = 1:3000, gridExpand = TRUE)
     writeDataTable(walklist, sheet = 1, 
                    x = ed_table[,c("name","address","apt","age",
-                                   "sex","status","knocked","signed","moved", 
+                                   "sex","status","not_home","signed","moved", 
                                     "inaccessible", "refused","email","notes")],
               rowNames = T)
     setColWidths(walklist, sheet = 1, cols = 1, widths = 4)
