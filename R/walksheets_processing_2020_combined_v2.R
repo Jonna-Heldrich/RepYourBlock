@@ -262,10 +262,6 @@ for (i in ads) {
   for (j in eds) {
     ed_table <- ad_table %>%
       filter(ED==j)
-    ed_table$prime <- NA
-    ed_table[order(ed_table$voterscore,decreasing = TRUE),
-             'prime'][1:round(0.1*nrow(ed_table))] <- '*'
-    ed_table[which(ed_table$prime != "*"),'prime'] <- ""
     edlistj = ed_table[order(ed_table$clean_addstreet, ed_table$streetside,
                              ed_table$buildingnum,ed_table$addnumber,
                             ed_table$aptnum, ed_table$apt, decreasing = F),]
@@ -314,6 +310,7 @@ for (i in ads) {
     setColWidths(walklist, sheet = 1, cols = 12, widths = 8)
     setColWidths(walklist, sheet = 1, cols = 13, widths = 12)
     setColWidths(walklist, sheet = 1, cols = 14, widths = 30)
+    freezePane(walklist, sheet = 1,firstRow = TRUE)
     saveWorkbook(walklist, paste0(path,"data/walksheets/AD_",i,"/",adedname,"/",adedname,"_sheets.xlsx"),
                  overwrite = TRUE)
   }
