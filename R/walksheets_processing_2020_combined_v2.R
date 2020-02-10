@@ -127,6 +127,16 @@ cleaned_dems <- dems %>%
          clean_addstreet = gsub("FLATBUSH AVE", "FLATBUSH AVENUE", clean_addstreet),
          clean_addstreet = gsub("MARTIN L K", "MARTIN LUTHER K", clean_addstreet),
          clean_addstreet = gsub("OCEAN AVE", "OCEAN AVENUE", clean_addstreet),
+         clean_addstreet = gsub("MC DONALD", "MCDONALD", clean_addstreet),
+         clean_addstreet = gsub("DE KALB", "DEKALB", clean_addstreet),
+         clean_addstreet = gsub("DE GRAW", "DEGRAW", clean_addstreet),
+         clean_addstreet = gsub("DESALES", "DE SALES", clean_addstreet),
+         clean_addstreet = gsub("MC CLANCY", "MCCLANCY", clean_addstreet),  
+         clean_addstreet = gsub("MC GUINESS", "MCGUINESS", clean_addstreet),
+         clean_addstreet = gsub("MC KEEVER", "MCKEEVER", clean_addstreet),
+         clean_addstreet = gsub("MC KIBBEN", "MCKIBBEN", clean_addstreet),
+         clean_addstreet = gsub("MC KINLEY", "MCKINLEY", clean_addstreet),
+         clean_addstreet = gsub("NOSTAND", "NOSTRAND", clean_addstreet),
          clean_addstreet = trimws(clean_addstreet))
 
 #####################################
@@ -144,8 +154,7 @@ cleaned_dems <- dems %>%
 
 #### import corrected bad streets and add to cleaned dems
 
-# corrected_df <- read_csv("~/Desktop/RepYourBlock/data/corrected_streets_20200124.csv") %>%
-corrected_df <- read_csv("~/Desktop/ryb/processed_data/corrected_streets_20200124.csv") %>%
+corrected_df <- read_csv("~/Desktop/RepYourBlock/data/corrected_streets_20200210.csv") %>%
   select(og_name, corrected) %>%
   rename(clean_addstreet = og_name)
 
@@ -162,7 +171,7 @@ streets <- cleaned_dems %>%
             aded = first(AD))
 
 bad_streets <- streets %>%
-  filter(count < 10)
+  filter(count < 10)  ### this is now 165 streets, all of which appear to be good streets with fewer than 10  registered dems
 
 # write.csv(bad_streets, "~/Desktop/ryb/RepYourBlock/data/streets_to_correct_2020.csv")
 
