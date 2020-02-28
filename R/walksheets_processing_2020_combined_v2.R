@@ -3,15 +3,20 @@
 # in Brooklyn.
 # Authors: Sara Hodges & Jonna Heldrich
 
-# cleaning the data: find most frequent street names
-# look at "openxls" for create checkboxes
+# Files needed to run the script
+## BOE voter file ('Kings_20200127.txt')
+## Headers file ('vf headers.xlsx')
+
+# Load packages needed to run the script
 require(dplyr)
 require(openxlsx)
 library(stringr)
 require(readr)
 
-path <- '~/Desktop/ryb/raw_data/'  #### path on Sara's computer
-# path <- '~/Desktop/RepYourBlock/dir_to_ignore/'
+# Change the path to location of the voter file
+path <- '~/Desktop/ryb/raw_data/' 
+
+# Open the voter file and add headers
 nyvoter <- paste0(path,'Kings_20200127.txt')
 nyvoter <- read.table(nyvoter,
                      sep=",",
@@ -24,9 +29,13 @@ colnames(voterheader) <- gsub('[0-9]{1,2}[.]| [[a-z][0-9]]', '', colnames(voterh
 colnames(voterheader) <- gsub('[\"]', '', colnames(voterheader))
 nyvoter2 <- nyvoter
 names(nyvoter2) = names(voterheader)
+
+# Subset data for county of interest
+# There are likely a variety of spellings used for each county, which need to be determined
 nyvoter2 <- nyvoter2[grep("klyn|kltyn|kkyn|klym|olyn|kyln|kllyn|kl;yn|kln|kly|klyb|okyn|klybn|klyln|112",
                           nyvoter2$addcity,ignore.case=TRUE),]
 
+# Subset voters who are Democrats
 dems <- nyvoter2 %>%
   select(ID, lastname, firstname, addnumber, addfract, addpredirect, addstreet,
          addpostdirect, addapt, addcity, DOB, gender, party,
@@ -195,6 +204,8 @@ aded <- cleaned_dems %>%
 
 #write_csv(aded, "~/Desktop/ryb/RepYourBlock/data/ad_ed_list.csv")
 
+# Organize the data into columns needed for sorting and 
+# add categories needed for final spreatsheets
 cleaned_dems %>%
   mutate(name = str_to_title(as.character(paste(firstname, lastname))),
          address = str_to_title(as.character(paste(addnumber, addpredirect, clean_addstreet))),
@@ -221,6 +232,7 @@ cleaned_dems %>%
          not_home, signed, moved, inaccessible, refused, email, notes)  %>%
   rename(sex = gender)
 
+# Create a vector including all elections needed for categorizing voters
 primaries=c("20180424 SP",
             "4-24-2018 Special Election",
             "SP 20180424",
@@ -254,18 +266,21 @@ primaries=c("20180424 SP",
               "SP 20190514",
             "20190625 PR",
             "PR 20190625")
-### voter status: 
+
+### Voter status categories: 
 ###    NewReg="registered after Nov 2018", 
 ###    inactive='not voted since 2016',
 ###    active='voted since 2016'
 ###    primary='voted in primary since 2017'
+
+# Use the "elections" vector to categorize voters
 cleaned_dems2 <- cleaned_dems %>%
   mutate(status = ifelse(grepl(paste(primaries,collapse = "|"),votehistory)==TRUE,"primary",
                   ifelse(grepl('2017|2018|2019',votehistory)==TRUE,'active',
                   ifelse(regdate>20181100,'NewReg','inactive'))))
 
-# sort by: street_name, streetside, house_num, aptnum, apt
-### create the list of ads and eds
+# Sort voters in a logical order for doorknocking
+# We sort by: street_name, streetside (odd or even), house_num, aptnum, apt
 ads = as.list(unique(cleaned_dems2$AD))
 edadlist = list()
 for (i in ads) {
@@ -285,15 +300,15 @@ for (i in ads) {
   edadlist[[i]] <- do.call(dplyr::bind_rows, edlist)
 }
 
-### create workbook, if not already created
+# Create workbooks to write walksheet data to
+# One workbook for online version of walksheets and one for printed version
 walklist <- createWorkbook()
 addWorksheet(walklist, "Sheet 1")
 walklistprint <- createWorkbook()
 addWorksheet(walklistprint, "Sheet 1")
 # path <- '~/Desktop/ryb/final_data/'  #### path on Sara's computer
 
-# make folders and walksheet files for each AD/ED
-
+# Make folders and walksheet files for each AD/ED
 dir.create(paste0(path,"data/walksheets/"))
 for (i in ads) {
   edad_table <- edadlist[[i]]
