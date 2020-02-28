@@ -154,12 +154,10 @@ cleaned_dems <- dems %>%
 
 #### import corrected bad streets and add to cleaned dems
 
-<<<<<<< HEAD
+
 #corrected_df <- read_csv("~/Desktop/RepYourBlock/data/corrected_streets_20200124.csv") %>%
-corrected_df <- read_csv("~/Desktop/ryb/processed_data/corrected_streets_20200124.csv") %>%
-=======
+# corrected_df <- read_csv("~/Desktop/ryb/processed_data/corrected_streets_20200124.csv") %>%
 corrected_df <- read_csv("~/Desktop/RepYourBlock/data/corrected_streets_20200210.csv") %>%
->>>>>>> 78427e0f3988cf78bce8c8386e8263eed3b361e9
   select(og_name, corrected) %>%
   rename(clean_addstreet = og_name)
 
@@ -195,7 +193,7 @@ aded <- cleaned_dems %>%
 
 #write_csv(aded, "~/Desktop/ryb/RepYourBlock/data/ad_ed_list.csv")
 
-cleaned_dems %>%
+cleaned_dems_ <- cleaned_dems %>%
   mutate(name = str_to_title(as.character(paste(firstname, lastname))),
          address = str_to_title(as.character(paste(addnumber, addpredirect, clean_addstreet))),
          addnumber2 = gsub('\\b 1/2','',addnumber),
@@ -212,14 +210,14 @@ cleaned_dems %>%
          email = "",
          notes = "",
          age = paste(2019 - as.numeric(substr(DOB, 0, 4))),
-         gender="",
+         # gender="",
          streetside = if_else((as.numeric(as.character(buildingnum)) %% 2 == 0),'even','odd')
   ) %>%
   select(ID, name, address, apt, age, gender,
          ED, AD, last_voted, status, streetside,
          clean_addstreet, addnumber, buildingnum, aptnum, votehistory, regdate,
          not_home, signed, moved, inaccessible, refused, email, notes)  %>%
-  rename(sex = gender)
+  rename(`M/F` = gender)
 
 primaries=c("20180424 SP",
             "4-24-2018 Special Election",
@@ -259,14 +257,17 @@ primaries=c("20180424 SP",
 ###    inactive='not voted since 2016',
 ###    active='voted since 2016'
 ###    primary='voted in primary since 2017'
-cleaned_dems2 <- cleaned_dems %>%
+cleaned_dems2 <- cleaned_dems_ %>%
   mutate(status = ifelse(grepl(paste(primaries,collapse = "|"),votehistory)==TRUE,"primary",
                   ifelse(grepl('2017|2018|2019',votehistory)==TRUE,'active',
                   ifelse(regdate>20181100,'NewReg','inactive'))))
 
 # sort by: street_name, streetside, house_num, aptnum, apt
 ### create the list of ads and eds
-ads = as.list(unique(cleaned_dems2$AD))
+# ads = as.list(unique(cleaned_dems2$AD))
+# ads = as.list(c(58, 50, 57, 54, 47, 45, 43, 42)) 
+# ads = as.list(55) 
+### second section to run after temp file error
 edadlist = list()
 for (i in ads) {
   ad_table <- cleaned_dems2 %>%
@@ -286,15 +287,15 @@ for (i in ads) {
 }
 
 ### create workbook, if not already created
-walklist <- createWorkbook()
-addWorksheet(walklist, "Sheet 1")
-walklistprint <- createWorkbook()
-addWorksheet(walklistprint, "Sheet 1")
+# walklist <- createWorkbook()
+# addWorksheet(walklist, "Sheet 1")
+# walklistprint <- createWorkbook()
+# addWorksheet(walklistprint, "Sheet 1")
 # path <- '~/Desktop/ryb/final_data/'  #### path on Sara's computer
 
 # make folders and walksheet files for each AD/ED
 
-dir.create(paste0(path,"data/walksheets/"))
+# dir.create(paste0(path,"data/walksheets/"))
 for (i in ads) {
   edad_table <- edadlist[[i]]
   eds = as.list(unique(edad_table$ED))
@@ -311,7 +312,7 @@ for (i in ads) {
     deleteData(walklist, sheet = 1, cols = 1:15, rows = 1:3000, gridExpand = TRUE)
     writeDataTable(walklist, sheet = 1, 
                    x = ed_table[,c("name","address","apt","age",
-                                   "sex","status","not_home","signed","moved", 
+                                   "M/F","status","not_home","signed","moved", 
                                    "inaccessible", "refused","email","notes","ID")],
                    rowNames = T)
     setColWidths(walklist, sheet = 1, cols = 1, widths = 4)
@@ -327,7 +328,7 @@ for (i in ads) {
     setColWidths(walklist, sheet = 1, cols = 12, widths = 8)
     setColWidths(walklist, sheet = 1, cols = 13, widths = 12)
     setColWidths(walklist, sheet = 1, cols = 14, widths = 30)
-    setColWidths(walklist, sheet = 1, cols = 15, widths = 10, hidden = rep(FALSE, length(cols)))
+    setColWidths(walklist, sheet = 1, cols = 15, widths = 10, hidden = rep(TRUE, length(cols)))
     freezePane(walklist, sheet = 1,firstRow = TRUE)
     saveWorkbook(walklist, paste0(path,"data/walksheets/AD_",i,"/",adedname,"/",adedname,"_sheets.xlsx"),
                  overwrite = TRUE)
@@ -337,7 +338,7 @@ for (i in ads) {
     deleteData(walklistprint, sheet = 1, cols = 1:8, rows = 1:3000, gridExpand = TRUE)
     writeDataTable(walklistprint, sheet = 1, tableStyle = "none",
                    x = ed_table[,c("name","address","apt","age",
-                                   "sex","status","notes","ID")],
+                                   "M/F","status","notes","ID")],
                    rowNames = F)
     setColWidths(walklistprint, sheet = 1, cols = 1, widths = 25)
     setColWidths(walklistprint, sheet = 1, cols = 2, widths = 30)
@@ -346,7 +347,7 @@ for (i in ads) {
     setColWidths(walklistprint, sheet = 1, cols = 5, widths = 4)
     setColWidths(walklistprint, sheet = 1, cols = 6, widths = 5)
     setColWidths(walklistprint, sheet = 1, cols = 7, widths = 10)
-    setColWidths(walklistprint, sheet = 1, cols = 8, widths = 10, hidden = rep(FALSE, length(cols)))
+    setColWidths(walklistprint, sheet = 1, cols = 8, widths = 10, hidden = rep(TRUE, length(cols)))
     saveWorkbook(walklistprint, paste0(path,"data/walksheets/AD_",i,"/",adedname,"/",adedname,"_printout.xlsx"),
                  overwrite = TRUE)
     
@@ -358,25 +359,25 @@ for (i in ads) {
 ######################
 # To upload file directly to google drive as googlesheets:
 
-drive_auth()
-sheets_auth()
-googledrive::drive_mkdir("walksheets")
-for (i in ads) {
-  edad_table <- edadlist[[i]]
-  eds = as.list(unique(edad_table$ED))
-  drive_mkdir(paste0("walksheets/AD_",i))
-  for (j in eds) {
-    print(j)
-    ed_table <- edad_table %>%
-      filter(ED==j)
-    adedname = paste0("ad_", i, "_ed_", j)
-    drive_mkdir(paste0("walksheets/AD_",i,"/",adedname))
-    ed_table$ID <- rownames((ed_table))
-    walk_sheet <- ed_table[,c("ID","name","address","apt","age",
-                              "sex","status","knocked","signed","moved", 
-                              "inaccessible", "refused","email","notes")]
-    sheets_create(paste0(adedname,"_gs"),sheets = walk_sheet,)
-    googledrive::drive_mv(file = paste0(adedname,"_gs"),name=adedname,overwrite = T,
-                          path = paste0("walksheets/AD_",i,"/",adedname,"/"))
-  }
-}
+# drive_auth()
+# sheets_auth()
+# googledrive::drive_mkdir("walksheets")
+# for (i in ads) {
+#   edad_table <- edadlist[[i]]
+#   eds = as.list(unique(edad_table$ED))
+#   drive_mkdir(paste0("walksheets/AD_",i))
+#   for (j in eds) {
+#     print(j)
+#     ed_table <- edad_table %>%
+#       filter(ED==j)
+#     adedname = paste0("ad_", i, "_ed_", j)
+#     drive_mkdir(paste0("walksheets/AD_",i,"/",adedname))
+#     ed_table$ID <- rownames((ed_table))
+#     walk_sheet <- ed_table[,c("ID","name","address","apt","age",
+#                               "sex","status","knocked","signed","moved", 
+#                               "inaccessible", "refused","email","notes")]
+#     sheets_create(paste0(adedname,"_gs"),sheets = walk_sheet,)
+#     googledrive::drive_mv(file = paste0(adedname,"_gs"),name=adedname,overwrite = T,
+#                           path = paste0("walksheets/AD_",i,"/",adedname,"/"))
+#   }
+# }
