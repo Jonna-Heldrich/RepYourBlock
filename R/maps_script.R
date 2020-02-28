@@ -1,20 +1,23 @@
-### This script works to loop through a shapefile and create a map of each polygon
+# Maps for Brooklyn Walksheets 2020
+# Purpose: Create maps for each ED in Brooklyn and add them to correct walksheets folder.
+# Authors: Sara Hodges & Jonna Heldrich
 
-path <- "~/Desktop/ryb/"
+# Files needed to run the script
+## List of AD/EDs in Brooklyn (ad_ed_list.csv)
+## Election district shapefile from NYC Open Data (eds_nyc_20191215.shp)
+## downloaded on 12/15/2019 from https://data.cityofnewyork.us/City-Government/Election-Districts/h2n3-98hq)
+
 setwd(path)
 
-#### probably don't need all these packages, check later
+#### Load required packages
 require(sf)
-require(dplyr)
 require(mapview)
 require(tmap)
 require(tmaptools)
 require(leaflet)
-require(spData)
-require(OpenStreetMap)
 
 ### import list of all eds in brooklyn
-ad_ed_list <- read.csv(paste0(path,"RepYourBlock/data/ad_ed_list.csv"))
+ad_ed_list <- read.csv("RepYourBlock/data/ad_ed_list.csv")
 
 ### importing the state and point shapefiles
 ed_shp <- st_read("raw_data/Election Districts/eds_nyc_20191215.shp")
@@ -22,14 +25,13 @@ ed_shp <- st_read("raw_data/Election Districts/eds_nyc_20191215.shp")
 bk_ed_shp <- ed_shp %>% 
   right_join(ad_ed_list, by = c("elect_dist" = "ad_ed"))
 
-
+#############################
+#### tester with ad56_27 ###
+#############################
 ad56_27 <- bk_ed_shp %>% 
   mutate(elect_dist = as.character(elect_dist)) %>% 
   filter(elect_dist == "56027") 
 
-#############################
-#### tester with ad56_27 ###
-#############################
 temp_2_map <- tm_basemap("CartoDB.Voyager") +
   tm_shape(ad56_27) +
   tm_borders(lwd=3, col = "red", alpha = 1) +
@@ -46,15 +48,14 @@ mapshot(lf, file = "test6.png")
 ######## END TESTING #######
 #############################
 
-#### ad_ed_list is the dataframe to loop through - use this first  if you want to create new maps for a few districts
+#### ad_ed_list is the dataframe to loop through 
+#### use this first if you want to create new maps for a few districts to test
 # aded_list <- ad_ed_list %>%
 #   filter(ad_ed == "56044" | ad_ed == "51082" |
 #            ad_ed == "45003")
 
-ad_ed <- as.list(pull(ad_ed_list, ad_ed)) ### turns ad ed list into list to loop thorugh
-
-#### define 
-#dir.create(paste0(path,"data/ed_tables/"))
+### turns ad ed list into list to loop thorugh
+ad_ed <- as.list(pull(ad_ed_list, ad_ed))
 
 for (ed in ad_ed){
   shape <- bk_ed_shp %>% 
