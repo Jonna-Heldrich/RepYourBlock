@@ -4,8 +4,9 @@
 # Authors: Sara Hodges & Jonna Heldrich
 
 # Files needed to run the script
-## BOE voter file ('Kings_20200127.txt')
-## Headers file ('vf headers.xlsx')
+## BOE voter file (Kings_20200127.txt)
+## Headers file (vf headers.xlsx)
+## Cleaned street names (corrected_streets_20200124.csv)
 
 # Load packages needed to run the script
 require(dplyr)
@@ -202,13 +203,9 @@ aded <- cleaned_dems %>%
 
 #write_csv(aded, "~/Desktop/ryb/RepYourBlock/data/ad_ed_list.csv")
 
-<<<<<<< HEAD
 # Organize the data into columns needed for sorting and 
 # add categories needed for final spreatsheets
-cleaned_dems %>%
-=======
 cleaned_dems_ <- cleaned_dems %>%
->>>>>>> ef89a736bca6f3041bcb0dbb17558a2cc1c48c8c
   mutate(name = str_to_title(as.character(paste(firstname, lastname))),
          address = str_to_title(as.character(paste(addnumber, addpredirect, clean_addstreet))),
          addnumber2 = gsub('\\b 1/2','',addnumber),
@@ -225,7 +222,6 @@ cleaned_dems_ <- cleaned_dems %>%
          email = "",
          notes = "",
          age = paste(2019 - as.numeric(substr(DOB, 0, 4))),
-         # gender="",
          streetside = if_else((as.numeric(as.character(buildingnum)) %% 2 == 0),'even','odd')
   ) %>%
   select(ID, name, address, apt, age, gender,
@@ -274,13 +270,9 @@ primaries=c("20180424 SP",
 ###    inactive='not voted since 2016',
 ###    active='voted since 2016'
 ###    primary='voted in primary since 2017'
-<<<<<<< HEAD
 
 # Use the "elections" vector to categorize voters
-cleaned_dems2 <- cleaned_dems %>%
-=======
 cleaned_dems2 <- cleaned_dems_ %>%
->>>>>>> ef89a736bca6f3041bcb0dbb17558a2cc1c48c8c
   mutate(status = ifelse(grepl(paste(primaries,collapse = "|"),votehistory)==TRUE,"primary",
                   ifelse(grepl('2017|2018|2019',votehistory)==TRUE,'active',
                   ifelse(regdate>20181100,'NewReg','inactive'))))
@@ -309,7 +301,6 @@ for (i in ads) {
   edadlist[[i]] <- do.call(dplyr::bind_rows, edlist)
 }
 
-<<<<<<< HEAD
 # Create workbooks to write walksheet data to
 # One workbook for online version of walksheets and one for printed version
 walklist <- createWorkbook()
@@ -320,18 +311,6 @@ addWorksheet(walklistprint, "Sheet 1")
 
 # Make folders and walksheet files for each AD/ED
 dir.create(paste0(path,"data/walksheets/"))
-=======
-### create workbook, if not already created
-# walklist <- createWorkbook()
-# addWorksheet(walklist, "Sheet 1")
-# walklistprint <- createWorkbook()
-# addWorksheet(walklistprint, "Sheet 1")
-# path <- '~/Desktop/ryb/final_data/'  #### path on Sara's computer
-
-# make folders and walksheet files for each AD/ED
-
-# dir.create(paste0(path,"data/walksheets/"))
->>>>>>> ef89a736bca6f3041bcb0dbb17558a2cc1c48c8c
 for (i in ads) {
   edad_table <- edadlist[[i]]
   eds = as.list(unique(edad_table$ED))
