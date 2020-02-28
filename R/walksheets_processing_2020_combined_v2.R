@@ -264,7 +264,7 @@ cleaned_dems2 <- cleaned_dems_ %>%
 
 # sort by: street_name, streetside, house_num, aptnum, apt
 ### create the list of ads and eds
-# ads = as.list(unique(cleaned_dems2$AD))
+ads = as.list(unique(cleaned_dems2$AD))
 # ads = as.list(c(58, 50, 57, 54, 47, 45, 43, 42)) 
 # ads = as.list(55) 
 ### second section to run after temp file error
