@@ -7,7 +7,6 @@
 ## Election district shapefile from NYC Open Data (eds_nyc_20191215.shp)
 ## downloaded on 12/15/2019 from https://data.cityofnewyork.us/City-Government/Election-Districts/h2n3-98hq)
 
-setwd(path)
 
 #### Load required packages
 require(sf)
