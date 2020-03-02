@@ -391,8 +391,15 @@ cleaned_dems2 <- cleaned_dems_ %>%
   mutate(status = ifelse(grepl(paste(primaries,collapse = "|"),votehistory)==TRUE,"primary",
                   ifelse(grepl('2017|2018|2019',votehistory)==TRUE,'active',
                   ifelse(regdate>20181100,'NewReg','inactive'))))
-head(cleaned_dems2)
 ```
+| status  |  votehistory |
+|-------|--------------|
+|inactive |20161108 GE;20121106 GE |
+|active   |20181106 GE;20171107 GE;20161108 GE;20141104 GE;20131105 GE;20121106 GE;20101102 GE;20081104 GE |
+|active   |20181106 GE;20161108 GE;20121106 GE;20081104 GE;General Election 2004 |
+|primary  |20191105 GE;20190625 PR;20190226 SP;20180913 PR;20171107 GE;20161108 GE;20160913 PR;20160628 PR;PP 20160419;20141104 GE;20140909 PR;20131105 GE;20130910 PR;20121106 GE;20120913 PR;20120626 PR;20101102 GE;20100914 PR;20090929 RO;20090915 PR;20080205 PP;General Election 2006;City Primary Election 2006;General Election 2005;General Election 2004;Primary Election 2004;General Election 2002;City Primary Election 2002|
+|primary  |20191105 GE;20190226 SP;20181106 GE;20180913 PR;20171107 GE;20170912 PR;20161108 GE;20121106 GE;20101102 GE;20091103 GE;20081104 GE;General Election 2004|
+|active   |20181106 GE;20161108 GE;20160419 PP;20121106 GE;20101102 GE;20091103 GE;20081104 GE;20080205 PP;General Election 2006;City Primary Election 2006;General Election 2005;City Primary Election 2005;General Election 2004;General Election 2003;General Election 2002|
 
 <br/><br/>
 #### Sort voters in a logical order for doorknocking
@@ -420,9 +427,6 @@ for (i in ads) {
 }
 ```
 
-```{r}
-head(edadlist[[44]])
-```
 
 <br/><br/>
 #### Make folders and walksheet files for each AD/ED and 
