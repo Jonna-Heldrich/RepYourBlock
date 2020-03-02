@@ -38,8 +38,3 @@ The **creating_walksheets.R** script will output folders for each AD with indivi
   1. The printable version will fit to a standard 8.5"x11" page in the "portait" orientation. 
   2. The digital version contains additional columns for tracking progress during door-knocking.
 
-
-## License
-
-This project is licensed under the terms of the MIT license.
-See [LICENSE](LICENSE) file for details.
