@@ -1,3 +1,10 @@
+# RepYourBlock
+
+[RepYourBlock](https://www.repyourblock.com/) is a community-led campaign of New Kings Democrats to help everyday Brooklynites, like you, reform local government by winning a seat on the 5,000-member Kings County Democratic Committee (a.k.a. the Brooklyn Democratic Party).
+
+This repository includes the code to make walksheets to support the petitioning process.
+
+
 ## How to use walksheets and maps scripts
 
 #### Input
@@ -30,3 +37,9 @@ The **creating_walksheets.R** script will output folders for each AD with indivi
 
   1. The printable version will fit to a standard 8.5"x11" page in the "portait" orientation. 
   2. The digital version contains additional columns for tracking progress during door-knocking.
+
+
+## License
+
+This project is licensed under the terms of the MIT license.
+See [LICENSE](LICENSE) file for details.
