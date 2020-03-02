@@ -13,6 +13,18 @@ Files needed to run the **creating_maps.R** script include:
 #### Running the scripts
 The **creating_walksheets.R** script should be run prior to running the **creating_maps.R** script. The working directory must be set to the directory containing all of the required files.
 
+After initial filtering of county, party, and active-status voters, the street names will need to be cleaned. The script subsets streets that are used less than 10 times (lines 148-159). These street names will have to be manually corrected and saved to a .csv file and inputed to the script at line 163. The format of the corrected streets file should look as follows: 
+
+|corrected	| og_name	| count|
+|----------|---------|--------|
+|1 AVENUE	| 1 AVENUE	| 1|
+|101 AVENUE	| 101 AVENUE |	1|
+|14 AVENUE	| 14 AVE |	1|
+|21 AVENUE	| 21 AVE |	1|
+|37 AVENUE	| 37 AVENUE |	1|
+|4 AVENUE |	4 AVE |	2|
+
+
 #### Output
 The **creating_walksheets.R** script will output folders for each AD with individual folders for each ED within it. In each ED folder will be digital verstion of a walksheet (**AD_ED_sheets.xlsx**) and a printable verstion (**AD_ED_printout.xlsx**). 
 
