@@ -17,12 +17,12 @@ After initial filtering of county, party, and active-status voters, the street n
 
 |corrected	| og_name	| count|
 |----------|---------|--------|
-|1 AVENUE	| 1 AVENUE	| 1|
-|101 AVENUE	| 101 AVENUE |	1|
+|53 ST	| 53 ROAD ST	| 1|
+|ALBANY AVENUE	| ABANY AVENUE |	1|
 |14 AVENUE	| 14 AVE |	1|
-|21 AVENUE	| 21 AVE |	1|
-|37 AVENUE	| 37 AVENUE |	1|
-|4 AVENUE |	4 AVE |	2|
+|ADELPHI ST	|ADELPI ST |	2|
+|AINSLIE ST	|AINCLIE ST |	1|
+|JORALEMON ST|JORALEM ST |	2|
 
 
 #### Output
