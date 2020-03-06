@@ -20,12 +20,14 @@ nyvoter <- read.table('Kings_20200127.txt',
                      fill=TRUE,
                      row.names = NULL)
 
-voterheader <- paste0('vf headers.xlsx')
-voterheader <- read.xlsx(voterheader)
-colnames(voterheader) <- gsub('[0-9]{1,2}[.]| [[a-z][0-9]]', '', colnames(voterheader))
-colnames(voterheader) <- gsub('[\"]', '', colnames(voterheader))
+voterheader <- c('lastname', 'firstname', 'middlename', 'namesuffix', 'addnumber', 'addfract', 'addapt', 'addpredirect', 'addstreet',
+                 'addpostdirect', 'addcity', 'addzip5', 'addzip4', 'mailadd1', 'mailadd2', 'mailadd3', 'mailadd4', 'DOB',          
+                 'gender', 'party', 'otherparty', 'county', 'ED', 'LegDist', 'towncity', 'ward', 'CD',
+                 'SD', 'AD', 'lastvote', 'prevvote', 'prevcounty', 'prevaddr', 'prevname', 'countynum', 'regdate',      
+                 'regsource', 'idreq', 'idmet', 'status', 'statusreason', 'inactdate', 'purgedate', 'ID', 'votehistory')
+
 nyvoter2 <- nyvoter
-names(nyvoter2) = names(voterheader)
+names(nyvoter2) = voterheader
 
 # Subset data for county of interest
 # There are likely a variety of spellings used for each county, which need to be determined
